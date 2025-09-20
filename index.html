@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кубик 🎲</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        
+        .dice-container {
+            margin: 30px 0;
+            perspective: 1000px;
+        }
+        
+        .dice {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            transform-style: preserve-3d;
+            margin: 0 auto;
+            transition: transform 1s ease;
+            transform: rotateX(0deg) rotateY(0deg);
+        }
+        
+        .dice.rolling {
+            animation: roll 1s ease-out;
+        }
+        
+        @keyframes roll {
+            0% { transform: rotateX(0) rotateY(0); }
+            100% { transform: rotateX(720deg) rotateY(360deg); }
+        }
+        
+        .dice-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            font-weight: bold;
+        }
+        
+        /* Правильные преобразования для граней кубика */
+        .face-1 { transform: translateZ(50px); } /* 1 - передняя */
+        .face-2 { transform: rotateY(-90deg) translateZ(50px); } /* 2 - левая */
+        .face-3 { transform: rotateY(90deg) translateZ(50px); } /* 3 - правая */
+        .face-4 { transform: rotateX(90deg) translateZ(50px); } /* 4 - верхняя */
+        .face-5 { transform: rotateX(-90deg) translateZ(50px); } /* 5 - нижняя */
+        .face-6 { transform: rotateY(180deg) translateZ(50px); } /* 6 - задняя */
+        
+        .dot {
+            width: 15px;
+            height: 15px;
+            background: #333;
+            border-radius: 50%;
+            position: absolute;
+        }
+        
+        /* Расположение точек для каждой грани */
+        .face-1 .dot { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        
+        .face-2 .dot:nth-child(1) { top: 25%; left: 25%; }
+        .face-2 .dot:nth-child(2) { bottom: 25%; right: 25%; }
+        
+        .face-3 .dot:nth-child(1) { top: 25%; left: 25%; }
+        .face-3 .dot:nth-child(2) { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .face-3 .dot:nth-child(3) { bottom: 25%; right: 25%; }
+        
+        .face-4 .dot:nth-child(1) { top: 25%; left: 25%; }
+        .face-4 .dot:nth-child(2) { top: 25%; right: 25%; }
+        .face-4 .dot:nth-child(3) { bottom: 25%; left: 25%; }
+        .face-4 .dot:nth-child(4) { bottom: 25%; right: 25%; }
+        
+        .face-5 .dot:nth-child(1) { top: 25%; left: 25%; }
+        .face-5 .dot:nth-child(2) { top: 25%; right: 25%; }
+        .face-5 .dot:nth-child(3) { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .face-5 .dot:nth-child(4) { bottom: 25%; left: 25%; }
+        .face-5 .dot:nth-child(5) { bottom: 25%; right: 25%; }
+        
+        .face-6 .dot:nth-child(1) { top: 25%; left: 25%; }
+        .face-6 .dot:nth-child(2) { top: 25%; right: 25%; }
+        .face-6 .dot:nth-child(3) { top: 50%; left: 25%; transform: translateY(-50%); }
+        .face-6 .dot:nth-child(4) { top: 50%; right: 25%; transform: translateY(-50%); }
+        .face-6 .dot:nth-child(5) { bottom: 25%; left: 25%; }
+        .face-6 .dot:nth-child(6) { bottom: 25%; right: 25%; }
+        
+        .roll-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-bottom: 20px;
+        }
+        
+        .roll-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .roll-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .result {
+            font-size: 1.5em;
+            margin: 15px 0;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .history {
+            margin-top: 20px;
+            text-align: left;
+        }
+        
+        .history h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        #history-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 10px;
+        }
+        
+        .history-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .clear-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .stats {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            text-align: left;
+        }
+        
+        .stats h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .stats-bar {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .stats-number {
+            width: 20px;
+            font-weight: bold;
+        }
+        
+        .stats-bar-inner {
+            height: 20px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            margin: 0 10px;
+            border-radius: 5px;
+        }
+        
+        .stats-count {
+            width: 40px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎲 Бросок кубика</h1>
+        
+        <div class="dice-container">
+            <div class="dice" id="dice">
+                <div class="dice-face face-1"><div class="dot"></div></div>
+                <div class="dice-face face-2">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+                <div class="dice-face face-3">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+                <div class="dice-face face-4">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+                <div class="dice-face face-5">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+                <div class="dice-face face-6">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="roll-btn" onclick="rollDice()">Бросить кубик</button>
+        
+        <div class="result" id="result">Нажмите "Бросить кубик"</div>
+        
+        <div class="stats" id="stats">
+            <h3>Статистика 📈</h3>
+            <div id="stats-content"></div>
+        </div>
+        
+        <div class="history">
+            <h3>История бросков 📊</h3>
+            <div id="history-list"></div>
+            <button class="clear-btn" onclick="clearHistory()">Очистить историю</button>
+        </div>
+    </div>
+
+    <script>
+        let history = JSON.parse(localStorage.getItem('diceHistory')) || [];
+        let isRolling = false;
+        let totalRolls = history.length;
+        
+        updateHistoryDisplay();
+        updateStats();
+        
+        function rollDice() {
+            if (isRolling) return;
+            
+            const dice = document.getElementById('dice');
+            const resultElement = document.getElementById('result');
+            
+            isRolling = true;
+            dice.classList.add('rolling');
+            resultElement.textContent = 'Бросок...';
+            
+            const rollResult = Math.floor(Math.random() * 6) + 1;
+            
+            setTimeout(() => {
+                dice.classList.remove('rolling');
+                
+                // Правильные повороты для каждой грани кубика
+                const rotations = {
+                    1: 'rotateX(0deg) rotateY(0deg)',     // 1 - передняя
+                    2: 'rotateY(90deg) rotateX(0deg)',    // 2 - правая
+                    3: 'rotateY(-90deg) rotateX(0deg)',   // 3 - левая
+                    4: 'rotateX(-90deg) rotateY(0deg)',   // 4 - верхняя
+                    5: 'rotateX(90deg) rotateY(0deg)',    // 5 - нижняя
+                    6: 'rotateY(180deg) rotateX(0deg)'    // 6 - задняя
+                };
+                
+                dice.style.transform = rotations[rollResult];
+                resultElement.textContent = `Выпало: ${rollResult}`;
+                addToHistory(rollResult);
+                isRolling = false;
+                
+            }, 1000);
+        }
+        
+        function addToHistory(result) {
+            totalRolls++;
+            const timestamp = new Date().toLocaleTimeString();
+            history.unshift({
+                result: result,
+                time: timestamp,
+                date: new Date().toLocaleDateString(),
+                rollNumber: totalRolls
+            });
+            
+            // Ограничиваем историю 1000 последними бросками
+            if (history.length > 1000) {
+                history.pop();
+            }
+            
+            localStorage.setItem('diceHistory', JSON.stringify(history));
+            updateHistoryDisplay();
+            updateStats();
+        }
+        
+        function updateHistoryDisplay() {
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<div class="history-item">История пуста</div>';
+                return;
+            }
+            
+            history.forEach((item, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `
+                    <span>Бросок ${item.rollNumber}:</span>
+                    <strong>${item.result}</strong>
+                    <span>${item.time}</span>
+                `;
+                historyList.appendChild(historyItem);
+            });
+        }
+        
+        function updateStats() {
+            const statsContent = document.getElementById('stats-content');
+            statsContent.innerHTML = '';
+            
+            if (history.length === 0) {
+                statsContent.innerHTML = '<p>Нет данных для статистики</p>';
+                return;
+            }
+            
+            // Считаем количество выпадений каждой цифры
+            const counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0};
+            history.forEach(item => {
+                counts[item.result]++;
+            });
+            
+            // Находим максимальное значение для масштабирования
+            const maxCount = Math.max(...Object.values(counts));
+            
+            // Создаем строки статистики для каждой цифры
+            for (let i = 1; i <= 6; i++) {
+                const percentage = (counts[i] / history.length * 100).toFixed(1);
+                const barWidth = maxCount > 0 ? (counts[i] / maxCount * 100) : 0;
+                
+                const statRow = document.createElement('div');
+                statRow.className = 'stats-bar';
+                statRow.innerHTML = `
+                    <div class="stats-number">${i}:</div>
+                    <div class="stats-bar-inner" style="width: ${barWidth}%"></div>
+                    <div class="stats-count">${counts[i]}</div>
+                    <div>(${percentage}%)</div>
+                `;
+                statsContent.appendChild(statRow);
+            }
+            
+            // Добавляем общее количество бросков
+            const totalRow = document.createElement('div');
+            totalRow.style.marginTop = '10px';
+            totalRow.style.fontWeight = 'bold';
+            totalRow.textContent = `Всего бросков: ${history.length}`;
+            statsContent.appendChild(totalRow);
+        }
+        
+        function clearHistory() {
+            if (confirm('Очистить всю историю бросков?')) {
+                history = [];
+                totalRolls = 0;
+                localStorage.removeItem('diceHistory');
+                updateHistoryDisplay();
+                updateStats();
+                document.getElementById('result').textContent = 'Нажмите "Бросить кубик"';
+                document.getElementById('dice').style.transform = 'rotateX(0deg) rotateY(0deg)';
+            }
+        }
+    </script>
+</body>
+</html>
